@@ -1,0 +1,40 @@
+name: notebook_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  firebase_core: 4.13.0
+  firebase_auth: 6.5.7
+  google_sign_in: 7.2.0
+  cloud_firestore: ^6.8.0
+
+  http: ^1.6.0
+  country_picker: ^2.0.28
+
+  # Live classes
+  livekit_client: ^2.12.0
+
+  # Keep this version to avoid objective_c native-assets issue on Windows
+  path_provider_foundation: 2.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/notebook_logo.png

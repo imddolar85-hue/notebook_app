@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "789792568803",
+    "project_id": "smart-notebook-5f2b9",
+    "storage_bucket": "smart-notebook-5f2b9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:789792568803:android:da5cf606bd67b8899e1cd6",
+        "android_client_info": {
+          "package_name": "com.example.notebook_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "789792568803-2sbtuv6oh20p81p946sna3t47ss92aq8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy-MZ2KFVFyqnx3BXHca9oSkJfSlovI9I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "789792568803-2sbtuv6oh20p81p946sna3t47ss92aq8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "789792568803-j86s52ognqgdl5m7oudf3mrqsm18mvcj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.notebookApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

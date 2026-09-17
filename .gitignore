@@ -1,0 +1,31 @@
+# Firebase secrets
+functions/.env
+functions/.runtimeconfig.json
+
+# Node
+node_modules/
+functions/node_modules/
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+
+# Android
+android/.gradle/
+android/local.properties
+
+# IDE
+.idea/
+.vscode/
+
+# Generated files
+*.iml
+*.log
+
+# Local backup
+functions/index.backup.js
+# Resend dashboard files
+lib/API keys*
