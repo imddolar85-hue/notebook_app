@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/imddolar85-hue/notebook_app#readme",
   "dependencies": {
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "livekit-server-sdk": "^2.19.0"
   }
