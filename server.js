@@ -67,6 +67,41 @@ app.post("/createLiveKitToken", async (req, res) => {
   }
 });
 
+app.post("/verifyLiveKitToken", async (req, res) => {
+  try {
+    const token = String(req.body?.token || "").trim();
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token is required.",
+      });
+    }
+
+    const { TokenVerifier } = require("livekit-server-sdk");
+
+    const verifier = new TokenVerifier(
+      process.env.LIVEKIT_API_KEY,
+      process.env.LIVEKIT_API_SECRET
+    );
+
+    const result = await verifier.verify(token);
+
+    return res.status(200).json({
+      success: true,
+      identity: result.identity,
+      name: result.name,
+    });
+  } catch (error) {
+    console.error("verifyLiveKitToken error:", error);
+
+    return res.status(401).json({
+      success: false,
+      message: error.message || "Token verification failed.",
+    });
+  }
+});
+
 const PORT = Number(process.env.PORT) || 10000;
 
 app.listen(PORT, "0.0.0.0", () => {
