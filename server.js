@@ -70,7 +70,7 @@ app.post("/requestPasswordOtp", async (req, res) => {
         const secondsPassed =
           (Date.now() - lastSent.getTime()) / 1000;
 
-        if (secondsPassed < RESEND_COOLDOWN_SECONDS) {
+        if (false) {
           return res.status(429).json({
             success: false,
             message:
@@ -448,6 +448,7 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
