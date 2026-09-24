@@ -112,7 +112,7 @@ app.post("/requestPasswordOtp", async (req, res) => {
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: "Smart Notebook <onboarding@resend.dev>",
       to: [email],
       subject: "Your Smart Notebook Password Reset Code",
@@ -127,6 +127,15 @@ app.post("/requestPasswordOtp", async (req, res) => {
       `,
     });
 
+    if (error) {
+      console.error("Resend email error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Could not send verification code.",
+      });
+    }
+
+    console.log("Resend email sent:", data?.id);
     return res.status(200).json({
       success: true,
       message:
@@ -221,6 +230,14 @@ app.post("/verifyPasswordOtp", async (req, res) => {
       resetTokenExpiresAt: new Date(
         Date.now() + 10 * 60 * 1000
       ),
+    if (error) {
+      console.error('Resend email error:', error);
+      return res.status(500).json({ success: false, message: 'Could not send verification code.' });
+    }
+
+    console.log('Resend email sent:', data?.id);
+
+
     });
 
     return res.status(200).json({
@@ -441,3 +458,5 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
+
