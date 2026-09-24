@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
 const { AccessToken, TokenVerifier } = require("livekit-server-sdk");
@@ -227,18 +227,7 @@ app.post("/verifyPasswordOtp", async (req, res) => {
     await otpRef.update({
       verified: true,
       resetTokenHash: hashValue(resetToken),
-      resetTokenExpiresAt: new Date(
-        Date.now() + 10 * 60 * 1000
-      ),
-    if (error) {
-      console.error('Resend email error:', error);
-      return res.status(500).json({ success: false, message: 'Could not send verification code.' });
-    }
-
-    console.log('Resend email sent:', data?.id);
-
-
-    });
+      resetTokenExpiresAt: new Date(Date.now() + 10 * 60 * 1000),`r`n    });
 
     return res.status(200).json({
       success: true,
@@ -458,5 +447,6 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
