@@ -227,7 +227,8 @@ app.post("/verifyPasswordOtp", async (req, res) => {
     await otpRef.update({
       verified: true,
       resetTokenHash: hashValue(resetToken),
-      resetTokenExpiresAt: new Date(Date.now() + 10 * 60 * 1000),`n    });
+      resetTokenExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    });
 
     return res.status(200).json({
       success: true,
@@ -447,6 +448,7 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
