@@ -449,11 +449,21 @@ app.post("/verifyLiveKitToken", async (req, res) => {
 
 const PORT = Number(process.env.PORT) || 10000;
 
+app.get("/checkB2", (req, res) => {
+  return res.status(200).json({
+    success: true,
+    B2_APPLICATION_KEY_ID: process.env.B2_APPLICATION_KEY_ID ? "SET" : "NOT SET",
+    B2_APPLICATION_KEY: process.env.B2_APPLICATION_KEY ? "SET" : "NOT SET",
+    B2_BUCKET_NAME: process.env.B2_BUCKET_NAME ? "SET" : "NOT SET",
+    B2_ENDPOINT: process.env.B2_ENDPOINT ? "SET" : "NOT SET",
+  });
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log(
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
