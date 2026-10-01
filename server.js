@@ -449,6 +449,67 @@ app.post("/verifyLiveKitToken", async (req, res) => {
 
 const PORT = Number(process.env.PORT) || 10000;
 
+app.post("/startLiveRecording", async (req, res) => {
+  try {
+    const roomName = String(req.body?.roomName || "").trim();
+
+    if (!roomName) {
+      return res.status(400).json({
+        success: false,
+        message: "roomName is required.",
+      });
+    }
+
+    const accessKey = process.env.B2_APPLICATION_KEY_ID;
+    const secret = process.env.B2_APPLICATION_KEY;
+    const bucket = process.env.B2_BUCKET_NAME;
+    const endpoint = process.env.B2_ENDPOINT;
+    const region = "us-east-005";
+
+    if (!accessKey || !secret || !bucket || !endpoint) {
+      return res.status(500).json({
+        success: false,
+        message: "B2 storage configuration is missing.",
+      });
+    }
+
+    const filepath = `live-recordings/${roomName}-${Date.now()}.mp4`;
+
+    const fileOutput = new EncodedFileOutput({
+      fileType: "MP4",
+      filepath,
+      output: new S3Upload({
+        accessKey,
+        secret,
+        region,
+        endpoint,
+        bucket,
+        forcePathStyle: false,
+      }),
+    });
+
+    const request = new RoomCompositeEgressRequest({
+      roomName,
+      layout: "grid",
+      fileOutputs: [fileOutput],
+    });
+
+    const info = await egressClient.startRoomCompositeEgress(request);
+
+    return res.status(200).json({
+      success: true,
+      egressId: info.egressId,
+      roomName,
+      filepath,
+    });
+  } catch (error) {
+    console.error("startLiveRecording error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Could not start live recording.",
+    });
+  }
+});
 app.get("/checkB2", (req, res) => {
   return res.status(200).json({
     success: true,
@@ -463,6 +524,7 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
