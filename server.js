@@ -513,6 +513,33 @@ app.post("/startLiveRecording", async (req, res) => {
     });
   }
 });
+app.post("/stopLiveRecording", async (req, res) => {
+  try {
+    const egressId = String(req.body?.egressId || "").trim();
+
+    if (!egressId) {
+      return res.status(400).json({
+        success: false,
+        message: "egressId is required.",
+      });
+    }
+
+    const info = await egressClient.stopEgress(egressId);
+
+    return res.status(200).json({
+      success: true,
+      egressId,
+      status: info?.status ?? null,
+    });
+  } catch (error) {
+    console.error("stopLiveRecording error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not stop live recording.",
+    });
+  }
+});
 app.get("/checkB2", (req, res) => {
   return res.status(200).json({
     success: true,
@@ -527,6 +554,7 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
