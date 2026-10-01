@@ -476,25 +476,28 @@ app.post("/startLiveRecording", async (req, res) => {
     const filepath = `live-recordings/${roomName}-${Date.now()}.mp4`;
 
     const fileOutput = new EncodedFileOutput({
-      fileType: "MP4",
+      fileType: 1,
       filepath,
-      output: new S3Upload({
-        accessKey,
-        secret,
-        region,
-        endpoint,
-        bucket,
-        forcePathStyle: false,
-      }),
+      output: {
+        case: "s3",
+        value: new S3Upload({
+          accessKey,
+          secret,
+          region,
+          endpoint,
+          bucket,
+          forcePathStyle: false,
+        }),
+      },
     });
 
-    const request = new RoomCompositeEgressRequest({
+    const info = await egressClient.startRoomCompositeEgress(
       roomName,
-      layout: "grid",
-      fileOutputs: [fileOutput],
-    });
-
-    const info = await egressClient.startRoomCompositeEgress(request);
+      fileOutput,
+      {
+        layout: "grid",
+      }
+    );
 
     return res.status(200).json({
       success: true,
@@ -524,6 +527,7 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
