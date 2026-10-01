@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
-const { AccessToken, TokenVerifier } = require("livekit-server-sdk");
+const { AccessToken, TokenVerifier, EgressClient, RoomCompositeEgressRequest, EncodedFileOutput, S3Upload } = require("livekit-server-sdk");
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
@@ -15,6 +15,12 @@ app.use(express.json());
 app.use(cors());
 
 const db = getFirestore();
+const livekitUrl = process.env.LIVEKIT_URL || "https://notebook-hlsctmd9.livekit.cloud";
+const egressClient = new EgressClient(
+  livekitUrl,
+  process.env.LIVEKIT_API_KEY,
+  process.env.LIVEKIT_API_SECRET
+);
 
 const OTP_EXPIRY_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
@@ -448,6 +454,9 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
+
+
 
 
 
