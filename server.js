@@ -6,6 +6,8 @@ const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { Resend } = require("resend");
+const { S3Client, GetObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 initializeApp();
 
@@ -16,6 +18,16 @@ app.use(cors());
 
 const db = getFirestore();
 const livekitUrl = process.env.LIVEKIT_URL || "https://notebook-hlsctmd9.livekit.cloud";
+const b2Client = new S3Client({
+  region: process.env.B2_REGION || "us-east-005",
+  endpoint: process.env.B2_ENDPOINT,
+  forcePathStyle: false,
+  credentials: {
+    accessKeyId: process.env.B2_APPLICATION_KEY_ID,
+    secretAccessKey: process.env.B2_APPLICATION_KEY,
+  },
+});
+
 const egressClient = new EgressClient(
   livekitUrl,
   process.env.LIVEKIT_API_KEY,
@@ -540,6 +552,63 @@ app.post("/stopLiveRecording", async (req, res) => {
     });
   }
 });
+app.post("/createVideoPlaybackUrl", async (req, res) => {
+  try {
+    const videoKey = String(req.body?.videoKey || "").trim();
+
+    if (!videoKey) {
+      return res.status(400).json({
+        success: false,
+        message: "videoKey is required.",
+      });
+    }
+
+    if (!videoKey.startsWith("live-recordings/")) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid video key.",
+      });
+    }
+
+    const bucket = process.env.B2_BUCKET_NAME;
+
+    if (!bucket) {
+      return res.status(500).json({
+        success: false,
+        message: "B2 bucket is not configured.",
+      });
+    }
+
+    await b2Client.send(
+      new HeadObjectCommand({
+        Bucket: bucket,
+        Key: videoKey,
+      })
+    );
+
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: videoKey,
+    });
+
+    const url = await getSignedUrl(b2Client, command, {
+      expiresIn: 3600,
+    });
+
+    return res.status(200).json({
+      success: true,
+      url,
+      expiresIn: 3600,
+    });
+  } catch (error) {
+    console.error("createVideoPlaybackUrl error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not create video playback URL.",
+    });
+  }
+});
 app.get("/checkB2", (req, res) => {
   return res.status(200).json({
     success: true,
@@ -554,6 +623,11 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
+
+
+
+
 
 
 
