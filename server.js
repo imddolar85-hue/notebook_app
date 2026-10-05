@@ -21,7 +21,7 @@ const livekitUrl = process.env.LIVEKIT_URL || "https://notebook-hlsctmd9.livekit
 const b2Client = new S3Client({
   region: process.env.B2_REGION || "us-east-005",
   endpoint: process.env.B2_ENDPOINT,
-  forcePathStyle: false,
+  forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.B2_APPLICATION_KEY_ID,
     secretAccessKey: process.env.B2_APPLICATION_KEY,
@@ -498,7 +498,7 @@ app.post("/startLiveRecording", async (req, res) => {
           region,
           endpoint,
           bucket,
-          forcePathStyle: false,
+          forcePathStyle: true,
         }),
       },
     });
@@ -528,31 +528,117 @@ app.post("/startLiveRecording", async (req, res) => {
 app.post("/stopLiveRecording", async (req, res) => {
   try {
     const egressId = String(req.body?.egressId || "").trim();
+    const requestedVideoKey = String(req.body?.videoKey || "").trim();
+
 
     if (!egressId) {
-      return res.status(400).json({
+      return res.status(100).json( {
         success: false,
         message: "egressId is required.",
       });
     }
 
-    const info = await egressClient.stopEgress(egressId);
+    await egressClient.stopEgress(egressId);
+
+    const terminalStatuses = new Set([3, 4, 5, 6]);
+    let finalInfo = null;
+
+
+    for (let attempt = 0; attempt < 90; attempt++) {
+      const results = await egressClient.listEgress({ egressId });
+      finalInfo = results?.[0] ?? null;
+
+
+      if (finalInfo && terminalStatuses.has(Number(finalInfo.status))) {
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    if (!finalInfo) {
+      return res.status(404).json({
+        success: false,
+        message: "Egress recording was not found after stop request.",
+      });
+    }
+
+    const status = Number(finalInfo.status);
+
+    if (status !== 3) {
+      return res.status(409).json({
+        success: false,
+        ready: false,
+        egressId,
+        status,
+        error: finalInfo.error || finalInfo.details || "Recording did not complete successfully.",
+      });
+    }
+
+    const fileInfo = finalInfo.fileResults?.[0] ?? null;
+    const filename = String(fileInfo?.filename || "").trim();
+    const location = String(fileInfo?.location || "").trim();
+
+    let videoKey = requestedVideoKey || filename;
+
+    if (!videoKey && location) {
+      const marker = "live-recordings/";
+      const markerIndex = location.indexOf(marker);
+      if (markerIndex >= 0) {
+        videoKey = location.substring(markerIndex);
+      }
+    }
+
+    if (!videoKey || !videoKey.startsWith("live-recordings/")) {
+      return res.status(500).json({
+        success: false,
+        ready: false,
+        egressId,
+        status,
+        message: "Recording completed, but the final video key could not be determined.",
+        filename: filename || null,
+        location: location || null,
+      });
+    }
+
+    const bucket = process.env.B2_BUCKET_NAME;
+
+    if (!bucket) {
+      return res.status(500).json({
+        success: false,
+        ready: false,
+        egressId,
+        status,
+        message: "B2 bucket is not configured.",
+      });
+    }
+
+    await b2Client.send(
+      new HeadObjectCommand({
+        Bucket: bucket,
+        Key: videoKey,
+      }),
+    );
 
     return res.status(200).json({
       success: true,
+      ready: true,
       egressId,
-      status: info?.status ?? null,
+      status,
+      videoKey,
+      filename: filename || null,
+      location: location || null,
     });
   } catch (error) {
     console.error("stopLiveRecording error:", error);
 
     return res.status(500).json({
       success: false,
+      ready: false,
       message: "Could not stop live recording.",
     });
   }
-});
-app.post("/createVideoPlaybackUrl", async (req, res) => {
+});app.post("/createVideoPlaybackUrl", async (req, res) => {
   try {
     const videoKey = String(req.body?.videoKey || "").trim();
 
@@ -623,6 +709,7 @@ app.listen(PORT, "0.0.0.0", () => {
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
