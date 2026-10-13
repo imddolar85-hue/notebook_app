@@ -532,7 +532,7 @@ app.post("/stopLiveRecording", async (req, res) => {
 
 
     if (!egressId) {
-      return res.status(100).json( {
+      return res.status(400).json( {
         success: false,
         message: "egressId is required.",
       });
@@ -579,14 +579,18 @@ app.post("/stopLiveRecording", async (req, res) => {
     const filename = String(fileInfo?.filename || "").trim();
     const location = String(fileInfo?.location || "").trim();
 
-    let videoKey = requestedVideoKey || filename;
+    let videoKey = requestedVideoKey;
+    const marker = "live-recordings/";
 
     if (!videoKey && location) {
-      const marker = "live-recordings/";
       const markerIndex = location.indexOf(marker);
       if (markerIndex >= 0) {
         videoKey = location.substring(markerIndex);
       }
+    }
+
+    if (!videoKey && filename.startsWith(marker)) {
+      videoKey = filename;
     }
 
     if (!videoKey || !videoKey.startsWith("live-recordings/")) {
