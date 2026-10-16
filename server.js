@@ -722,8 +722,10 @@ app.get("/checkB2", async (req, res) => {
   } catch (error) {
     console.error("checkB2 request failed:", {
       name: error.name,
-      code: error.Code || error.code,
-      statusCode: error.$metadata?.httpStatusCode
+      code: error.Code || error.code || error.Code,
+      message: error.message,
+      statusCode: error.$metadata?.httpStatusCode,
+      requestId: error.$metadata?.requestId
     });
 
     return res.status(502).json({
@@ -731,7 +733,9 @@ app.get("/checkB2", async (req, res) => {
       bucketCheck: "FAILED",
       errorName: error.name || "UnknownError",
       errorCode: error.Code || error.code || "UNKNOWN",
-      statusCode: error.$metadata?.httpStatusCode || null
+      errorMessage: error.message || "No error message returned",
+      statusCode: error.$metadata?.httpStatusCode || null,
+      requestId: error.$metadata?.requestId || null
     });
   }
 });app.listen(PORT, "0.0.0.0", () => {
