@@ -6,7 +6,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { Resend } = require("resend");
-const { S3Client, GetObjectCommand, HeadObjectCommand, HeadBucketCommand } = require("@aws-sdk/client-s3");
+const { S3Client, GetObjectCommand, HeadObjectCommand, ListObjectsV2Command } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 initializeApp();
@@ -711,7 +711,7 @@ app.get("/checkB2", async (req, res) => {
     }
 
     await b2Client.send(
-      new HeadBucketCommand({ Bucket: bucket })
+      new ListObjectsV2Command({ Bucket: bucket, MaxKeys: 1 })
     );
 
     return res.status(200).json({
@@ -722,10 +722,12 @@ app.get("/checkB2", async (req, res) => {
   } catch (error) {
     console.error("checkB2 request failed:", {
       name: error.name,
-      code: error.Code || error.code || error.Code,
       message: error.message,
-      statusCode: error.$metadata?.httpStatusCode,
-      requestId: error.$metadata?.requestId
+      code: error.code,
+      Code: error.Code,
+      Message: error.Message,
+      metadata: error.$metadata,
+      ownProperties: Object.getOwnPropertyNames(error)
     });
 
     return res.status(502).json({
