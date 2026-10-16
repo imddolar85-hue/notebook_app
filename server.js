@@ -6,7 +6,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { Resend } = require("resend");
-const { S3Client, GetObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, GetObjectCommand, HeadObjectCommand, HeadBucketCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 initializeApp();
@@ -699,20 +699,47 @@ app.post("/stopLiveRecording", async (req, res) => {
     });
   }
 });
-app.get("/checkB2", (req, res) => {
-  return res.status(200).json({
-    success: true,
-    B2_APPLICATION_KEY_ID: process.env.B2_APPLICATION_KEY_ID ? "SET" : "NOT SET",
-    B2_APPLICATION_KEY: process.env.B2_APPLICATION_KEY ? "SET" : "NOT SET",
-    B2_BUCKET_NAME: process.env.B2_BUCKET_NAME ? "SET" : "NOT SET",
-    B2_ENDPOINT: process.env.B2_ENDPOINT ? "SET" : "NOT SET",
-  });
-});
-app.listen(PORT, "0.0.0.0", () => {
+app.get("/checkB2", async (req, res) => {
+  try {
+    const bucket = process.env.B2_BUCKET_NAME;
+
+    if (!bucket) {
+      return res.status(500).json({
+        success: false,
+        message: "B2_BUCKET_NAME is not configured."
+      });
+    }
+
+    await b2Client.send(
+      new HeadBucketCommand({ Bucket: bucket })
+    );
+
+    return res.status(200).json({
+      success: true,
+      bucketCheck: "PASSED",
+      message: "Backblaze bucket access verified."
+    });
+  } catch (error) {
+    console.error("checkB2 request failed:", {
+      name: error.name,
+      code: error.Code || error.code,
+      statusCode: error.$metadata?.httpStatusCode
+    });
+
+    return res.status(502).json({
+      success: false,
+      bucketCheck: "FAILED",
+      errorName: error.name || "UnknownError",
+      errorCode: error.Code || error.code || "UNKNOWN",
+      statusCode: error.$metadata?.httpStatusCode || null
+    });
+  }
+});app.listen(PORT, "0.0.0.0", () => {
   console.log(
     `NoteBook Backend Server running on port ${PORT}`
   );
 });
+
 
 
 
