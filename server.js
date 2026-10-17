@@ -21,7 +21,6 @@ const livekitUrl = process.env.LIVEKIT_URL || "https://notebook-hlsctmd9.livekit
 const b2Client = new S3Client({
   region: process.env.B2_REGION || "us-east-005",
   endpoint: process.env.B2_ENDPOINT,
-  forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.B2_APPLICATION_KEY_ID,
     secretAccessKey: process.env.B2_APPLICATION_KEY,
